@@ -2,9 +2,16 @@
   "permissions": {
     "allow": [
       "Bash(make:*)",
-      "Bash(python3:*)"
+      "Bash(python3:*)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(wine LSPConvert.exe:*)",
+      "Bash(./LSPConvert:*)"
     ],
     "deny": [],
-    "ask": []
+    "ask": [],
+    "additionalDirectories": [
+      "/private/tmp"
+    ]
   }
 }

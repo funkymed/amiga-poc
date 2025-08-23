@@ -29,11 +29,11 @@ all: simple ## Compile tous les projets
 $(BUILD_DIR):
 	@mkdir -p $(BUILD_DIR)
 
-simple: $(BUILD_DIR) ## Compile le programme Hello World écran natif
-	@echo "🔨 Compilation Hello World écran natif complet..."
-	$(DOCKER_RUN) $(CC) +aos68k -cpu=68000 -O1 -I/opt/sdk/NDK_3.9/Include/include_h -o $(TARGET_SIMPLE) $(SRC_DIR)/hello_native.c -lamiga
+simple: $(BUILD_DIR) ## Compile le programme Hello World avec MOD
+	@echo "🔨 Compilation Hello World avec lecteur MOD..."
+	$(DOCKER_RUN) $(CC) +aos68k -cpu=68000 -O1 -I/opt/sdk/NDK_3.9/Include/include_h -I$(SRC_DIR) -I$(SRC_DIR)/SDI -o $(TARGET_SIMPLE) $(SRC_DIR)/main_simple.c $(SRC_DIR)/ptplayer/ptplayer.asm -lamiga
 	@echo "✅ Compilation terminée: $(TARGET_SIMPLE)"
-	@echo "📁 Programme Hello World écran natif disponible dans: $(TARGET_SIMPLE)"
+	@echo "📁 Programme Hello World avec MOD disponible dans: $(TARGET_SIMPLE)"
 
 demo: $(BUILD_DIR) ## Compile la démo complète Amiga
 	@echo "🔨 Compilation démo complète pour Amiga 500..."
@@ -62,12 +62,13 @@ install: simple ## Installe le binaire dans /tmp
 	cp $(TARGET_SIMPLE) /tmp/
 	@echo "✅ Installé dans /tmp/simple_amiga"
 
-adf-simple: simple ## Crée une disquette ADF simple pour Amiga 500
-	@echo "💾 Création disquette ADF simple pour Amiga 500..."
+adf-simple: simple ## Crée une disquette ADF simple avec MOD pour Amiga 500
+	@echo "💾 Création disquette ADF simple avec MOD pour Amiga 500..."
 	@rm -f $(BUILD_DIR)/simple_amiga.adf
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf create + format 'A500-SIMPLE' ofs
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf boot install
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(TARGET_SIMPLE)
+	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(ASSETS_DIR)/yeah.mod
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf makedir c
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(DISK_SIMPLE)/c/Echo c/
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(DISK_SIMPLE)/c/Execute c/
@@ -76,7 +77,7 @@ adf-simple: simple ## Crée une disquette ADF simple pour Amiga 500
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(DISK_SIMPLE)/s/startup-sequence s/
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf list
 	@echo "✅ Disquette ADF simple créée: $(BUILD_DIR)/simple_amiga.adf"
-	@echo "🚀 Compatible Amiga 500 + Kickstart 1.3"
+	@echo "🚀 Compatible Amiga 500 + Kickstart 1.3 avec MOD"
 
 adf-demo: demo ## Crée une disquette ADF démo complète pour Amiga 500
 	@echo "💾 Création disquette ADF démo pour Amiga 500..."
