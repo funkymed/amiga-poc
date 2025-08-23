@@ -1,0 +1,16 @@
+; Startup script pour la démo complète
+; 
+echo "=== Amiga 500 Demo Complete ==="
+echo "Démarrage de la démonstration..."
+echo ""
+
+; Lancement du programme principal
+amiga_demo
+
+; Pause pour lire les résultats
+echo ""
+echo "Appuyez sur Entrée pour continuer..."
+ask ""
+
+; Retour au CLI
+echo "Fin de la démonstration."
