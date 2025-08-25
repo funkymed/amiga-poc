@@ -40,7 +40,8 @@ makd adf-simple
 ![the output cli](docs/cli.png "cli")
 
 
+## Convert PNG to RAW
 
-## Run
-
-Launch your amiga and put the disk, or copy the files into your HDD and start simple_amiga 
+```
+python3 convert_font_png.py input.png 
+```
