@@ -147,13 +147,18 @@ static int setup_input_handler(void)
 // Allocate MOD data dynamically to save memory when not needed
 static UBYTE *mod_data = NULL;
 
-// Bitmap font constants - font1.png
-#define FONT_WIDTH 32        // Each character is 32 pixels wide
-#define FONT_HEIGHT 32       // Each character is 32 pixels high (192/6)
-#define FONT_CHARS_H 10      // 10 characters per row
-#define FONT_CHARS_V 6       // 6 rows of characters
+// Scrolltext definitions
+#define SCROLL_TEXT "    YEAH BY MED/MANDARINE - AMIGA - DEMO WITH BITMAP    "
+#define SCROLL_TEXT_LENGTH 55
+static int scroll_x = 640;
+
+// Bitmap font constants 
+#define FONT_WIDTH 16        // Each character is 16 pixels wide (320/20)
+#define FONT_HEIGHT 16       // Each character is 16 pixels high (48/3)
+#define FONT_CHARS_H 20      // 20 characters per row
+#define FONT_CHARS_V 3       // 3 rows of characters
 #define FONT_IMAGE_WIDTH 320
-#define FONT_IMAGE_HEIGHT 200
+#define FONT_IMAGE_HEIGHT 48
 
 // Character position cache for faster lookup
 typedef struct {
@@ -180,15 +185,10 @@ static BitmapFont bitmap_font = {0};
 // Forward declarations
 void draw_bitmap_text(struct RastPort *rp, const char *text, int x, int y);
 
-// Character mapping table for font1.png
-// Layout: !"# %B°()* / +,-./01234 / 56789::<=? / @ABCDEFGHI / JKLMNOPQRS / TUVWXYZ(
 static char char_map[] = {
-    ' ', '!', '"', '#', ' ', '%', 'B', 'o', '(', ')',  // Row 0 (space for missing chars, o for degree)
-    '*', '+', ',', '-', '.', '/', '0', '1', '2', '3',  // Row 1
-    '4', '5', '6', '7', '8', '9', ':', ':', '<', '=',  // Row 2
-    '>', '?', '@', 'A', 'B', 'C', 'D', 'E', 'F', 'G',  // Row 3
-    'H', 'I', 'J', 'K', 'L', 'M', 'N', 'O', 'P', 'Q',  // Row 4
-    'R', 'S', 'T', 'U', 'V', 'W', 'X', 'Y', 'Z', '('   // Row 5
+    ',','!','"','#','c','c',' ','\'','(',')','c',' ',',','-','.','/','0','1','2','3',
+    '4','5','6','7','8','9',':',';',' ','=',' ','?','_','A','B','C','D','E','F','G',
+    'H','I','J','K','L','M','N','O','P','Q','R','S','T','U','V','W','X','Y','Z',' '
 };
 
 // Pre-calculate character positions for fast lookup
@@ -200,7 +200,7 @@ void init_char_positions(void) {
     }
     
     // Map each character in char_map to its bitmap position
-    for (int i = 0; i < 60; i++) { // 60 chars total (10x6)
+    for (int i = 0; i < 60; i++) { // 60 chars total (20x3)
         char c = char_map[i];
         int char_row = i / FONT_CHARS_H;
         int char_col = i % FONT_CHARS_H;
@@ -222,7 +222,7 @@ int get_char_index(char c) {
     // Convert to uppercase for matching
     char upper_c = (c >= 'a' && c <= 'z') ? (c - 'a' + 'A') : c;
     
-    for (int i = 0; i < 60; i++) { // 60 chars total (10x6)
+    for (int i = 0; i < 60; i++) { // 60 chars total (20x3)
         if (char_map[i] == upper_c) {
             return i;
         }
@@ -540,7 +540,7 @@ int main(int argc, char **argv)
     SetPointer(window, blank_pointer, 1, 1, 0, 0);
     
     // Load bitmap font
-    load_bitmap_font("assets/font1.raw");
+    load_bitmap_font("assets/16X16-F5.raw");
     
     // Initialize rainbow palette FIRST
     struct ViewPort *vp = &screen->ViewPort;
@@ -574,32 +574,9 @@ int main(int argc, char **argv)
     // Draw rainbow background with RectFill (working version)
     draw_rainbow_background(rp);
     
-    // Display centered text "yeah by med/mandarine" using bitmap font
-    char *text = "yeah by med/mandarine";
-    int text_len = strlen(text);
-    int text_width = text_len * FONT_WIDTH;
-    int text_x = (640 - text_width) / 2;  // Center horizontally
+    // Scrolltext variables
+    int text_width = SCROLL_TEXT_LENGTH * FONT_WIDTH;
     int text_y = (256 - FONT_HEIGHT) / 2; // Center vertically
-    
-    // Draw text with bitmap font
-    if (bitmap_font.font_data) {
-        // TEST: Draw a simple character first to debug
-        // Try drawing 'Y' character at fixed position
-        draw_bitmap_char(rp, 'Y', 300, 100);
-        draw_bitmap_char(rp, 'E', 330, 100);
-        draw_bitmap_char(rp, 'A', 360, 100);
-        draw_bitmap_char(rp, 'H', 390, 100);
-        
-        // Draw the full text using optimized Blitter rendering
-        draw_bitmap_text_optimized(rp, text, text_x, text_y);
-    } else {
-        // Fallback to system font if bitmap font failed to load
-        SetAPen(rp, 1); // White pen
-        SetBPen(rp, 0); // Transparent background
-        SetDrMd(rp, JAM1); // Only foreground color
-        Move(rp, text_x, text_y + 20);
-        Text(rp, text, text_len);
-    }
 
     if (!setup_input_handler()) {
         CloseWindow(window);
@@ -678,7 +655,24 @@ int main(int argc, char **argv)
             update_colors(color_offset, &screen->ViewPort);
         }
         
-        // No double buffering - keep it simple
+        // Update scrolltext position
+        scroll_x -= 2; // Move 2 pixels left per frame
+        if (scroll_x < -text_width) {
+            scroll_x = 640; // Reset to right edge when fully scrolled off
+        }
+        
+        // Clear and redraw the text line only
+        int stripe_idx = text_y / (256 / 12);
+        SetAPen(rp, 2 + stripe_idx);
+        SetDrMd(rp, JAM1);
+        RectFill(rp, 0, text_y, 639, text_y + FONT_HEIGHT - 1);
+        
+        // Draw scrolltext if visible
+        if (scroll_x > -text_width && scroll_x < 640) {
+            if (bitmap_font.font_data) {
+                draw_bitmap_text(rp, SCROLL_TEXT, scroll_x, text_y);
+            }
+        }
     }
 
     // Cleanup

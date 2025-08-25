@@ -13,10 +13,8 @@ def convert_png_to_amiga_font(input_png, output_raw):
         img = Image.open(input_png)
         print(f"Original image mode: {img.mode}, size: {img.size}")
         
-        # Ensure the image is 320x200 as expected
-        if img.size != (320, 200):
-            print(f"Resizing image from {img.size} to (320, 200)")
-            img = img.resize((320, 200), Image.NEAREST)
+        # Keep original image size - no forced resizing
+        print(f"Using image size: {img.size}")
         
         # Convert to RGB to check exact color values
         if img.mode != 'RGB':
@@ -27,28 +25,15 @@ def convert_png_to_amiga_font(input_png, output_raw):
         # Get RGB pixel data
         rgb_pixels = list(img_rgb.getdata())
         
-        # Also get palette data if available for color mapping
-        if img.mode == 'P':
-            print("Image is in palette mode, preserving original colors")
-            palette_pixels = list(img.getdata())
-        else:
-            # Convert to palette mode to get color indices
-            img_palette = img.convert('P', palette=Image.ADAPTIVE, colors=8)
-            palette_pixels = list(img_palette.getdata())
-        
-        # Map colors: only pure black RGB(0,0,0) becomes transparent
+        # Simple 2-color font conversion: black=0 (transparent), non-black=1 (white)
         indexed_pixels = []
-        for i, rgb in enumerate(rgb_pixels):
+        for rgb in rgb_pixels:
             r, g, b = rgb
-            if r == 0 and g == 0 and b == 0:  # Pure black RGB(0,0,0) = transparent
-                indexed_pixels.append(0)   # Transparent
-            else:
-                # Use palette index, ensuring it's within Amiga range (1-15)
-                palette_index = palette_pixels[i]
-                if palette_index == 0:  # If palette says black but RGB isn't pure black
-                    palette_index = 1   # Make it color 1 instead of transparent
-                color_index = palette_index if palette_index <= 15 else (palette_index % 15) + 1
-                indexed_pixels.append(color_index)
+            # For grayscale/font images: black pixels = transparent (0), others = white (1)
+            if r == 0 and g == 0 and b == 0:  # Pure black = transparent
+                indexed_pixels.append(0)
+            else:  # Any non-black pixel = white text
+                indexed_pixels.append(1)
         
         # Write indexed pixel data
         with open(output_raw, 'wb') as f:
@@ -71,8 +56,8 @@ def convert_png_to_amiga_font(input_png, output_raw):
         return False
 
 if __name__ == "__main__":
-    input_file = "assets/font1.png"
-    output_file = "assets/font1.raw"
+    input_file = "assets/16X16-F5.png"
+    output_file = "assets/16X16-F5.raw"
     
     if not os.path.exists(input_file):
         print(f"Input file {input_file} not found!")
