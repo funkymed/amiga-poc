@@ -17,7 +17,7 @@ TARGET_SIMPLE = $(BUILD_DIR)/simple_amiga
 TARGET_DEMO = $(BUILD_DIR)/amiga_demo
 
 .DEFAULT_GOAL := help
-.PHONY: help all clean simple demo test list install adf adf-simple adf-demo
+.PHONY: help all clean simple demo test list install adf adf-simple adf-demo convert-png
 
 help: ## Affiche cette aide
 	@echo "Commandes disponibles:"
@@ -69,6 +69,10 @@ adf-simple: simple ## Crée une disquette ADF simple avec MOD pour Amiga 500
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf boot install
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(TARGET_SIMPLE)
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(ASSETS_DIR)/yeah.mod
+	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(ASSETS_DIR)/yeah.mod.rle
+	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(ASSETS_DIR)/PNG_Test_256colors.png
+	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(ASSETS_DIR)/fishtank_320x256x3.ts
+	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(ASSETS_DIR)/fishtank_320x200x3.ts
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf makedir c
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(DISK_SIMPLE)/c/Echo c/
 	python3 /Users/cyrilpereira/Sites/poc/amitools/bin/xdftool $(BUILD_DIR)/simple_amiga.adf write $(DISK_SIMPLE)/c/Execute c/
@@ -101,3 +105,15 @@ list: ## Liste les binaires et images disponibles
 	else \
 		echo "  Aucun fichier trouvé. Utilisez 'make simple' ou 'make adf'."; \
 	fi
+
+convert-png: ## Convertit une image PNG (Usage: make convert-png INPUT=source.png OUTPUT=dest.png COLORS=256)
+	@if [ -z "$(INPUT)" ] || [ -z "$(OUTPUT)" ]; then \
+		echo "❌ Usage: make convert-png INPUT=source.png OUTPUT=dest.png [COLORS=256]"; \
+		echo "   Exemple: make convert-png INPUT=assets/big.png OUTPUT=assets/small.png COLORS=8"; \
+		exit 1; \
+	fi
+	@COLORS_PARAM=$${COLORS:-256}; \
+	echo "🖼️  Conversion PNG: $(INPUT) -> $(OUTPUT) ($$COLORS_PARAM couleurs)"; \
+	convert "$(INPUT)" -background white -alpha remove -colors $$COLORS_PARAM "$(OUTPUT)"; \
+	echo "✅ Conversion terminée"; \
+	ls -lh "$(INPUT)" "$(OUTPUT)" || true

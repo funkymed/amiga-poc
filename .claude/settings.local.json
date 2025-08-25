@@ -6,7 +6,11 @@
       "WebFetch(domain:github.com)",
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(wine LSPConvert.exe:*)",
-      "Bash(./LSPConvert:*)"
+      "Bash(./LSPConvert:*)",
+      "Bash(lha:*)",
+      "WebSearch",
+      "Bash(chmod:*)",
+      "Bash(curl:*)"
     ],
     "deny": [],
     "ask": [],
