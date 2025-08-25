@@ -10,7 +10,8 @@
       "Bash(lha:*)",
       "WebSearch",
       "Bash(chmod:*)",
-      "Bash(curl:*)"
+      "Bash(curl:*)",
+      "Bash(pip3 install:*)"
     ],
     "deny": [],
     "ask": [],
