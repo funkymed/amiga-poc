@@ -71,8 +71,8 @@ def convert_png_to_amiga_font(input_png, output_raw):
         return False
 
 if __name__ == "__main__":
-    input_file = "assets/bitmap.png"
-    output_file = "assets/bitmap.raw"
+    input_file = "assets/font1.png"
+    output_file = "assets/font1.raw"
     
     if not os.path.exists(input_file):
         print(f"Input file {input_file} not found!")
