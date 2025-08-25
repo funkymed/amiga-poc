@@ -37,6 +37,10 @@ make simple
 makd adf-simple
 ```
 
+![the output cli](docs/cli.png "cli")
+
+
+
 ## Run
 
 Launch your amiga and put the disk, or copy the files into your HDD and start simple_amiga 
